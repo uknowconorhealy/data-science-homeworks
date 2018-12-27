@@ -10,32 +10,17 @@ from sqlalchemy import create_engine, func
 from flask import Flask, jsonify
 
 
-#################################################
-# Database Setup
-#################################################
 engine = create_engine("sqlite:///hawaii.sqlite")
 
-# reflect an existing database into a new model
 Base = automap_base()
-# reflect the tables
 Base.prepare(engine, reflect=True)
 
-# Save references to each table
 Measurement = Base.classes.measurement
 Station = Base.classes.station
 
-# Create our session (link) from Python to the DB
 session = Session(engine)
 
-#################################################
-# Flask Setup
-#################################################
 app = Flask(__name__)
-
-
-#################################################
-# Flask Routes
-#################################################
 
 @app.route("/")
 def welcome():
@@ -50,7 +35,6 @@ def welcome():
 
 @app.route("/api/v1.0/precipitation")
 def precipitation():
-    """Return a list of precipitations from last year"""
     max_date = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
    
     max_date = max_date[0]
@@ -72,7 +56,6 @@ def stations():
 
 @app.route("/api/v1.0/tobs")
 def temp_monthly():
-    """Return the temperature observations (tobs) for previous year."""
     prev_year = dt.date(2017, 8, 23) - dt.timedelta(days=365)
 
     results = session.query(Measurement.tobs).\
@@ -96,9 +79,6 @@ def trip1(start):
 
 @app.route("/api/v1.0/<start>/<end>")
 def start_end(start=None, end=None):
-    # Docstring
-    """Return a JSON list of tmin, tmax, tavg for the dates in range of start date and end date inclusive"""
-    
     between_dates = session.query(Measurement.date, func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).filter(Measurement.date >= start).filter(Measurement.date <= end).group_by(Measurement.date).all()
     between_dates_list=list(between_dates)
     return jsonify(between_dates_list)
